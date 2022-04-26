@@ -4,6 +4,14 @@ This is an executable script which trains a fresh spacy model for named entity
 recognition. The model is saved to the parent directory in a folder called
 taxon_ner_model. The saved model can be run elsewhere. There is also a built-in
 function here for evaluation.
+
+Methods:
+    train_spacy     Trains an NER model for a given number of iterations. Saves
+                    the model to a folder 'taxon_ner_model'
+    test            Tests our pretrained 'taxon_ner_model' and gives us
+                    accuracy, precision, and recall scores.
+    demo            Prints out some example named entities in some sentences.
+
 ============================================================================ """
 import spacy
 from spacy.lang.en import English
@@ -24,50 +32,50 @@ from tsv_loader import TSV_LOADER
 from random_loader import RANDOM_LOADER
 
 
-# def train_spacy(iterations):
-#     """
-#     Defines our spacy loop
-#     """
-#     # nlp = spacy.blank("en")
-#     nlp = spacy.load('en_core_web_sm')
-#     if "ner" not in nlp.pipe_names:
-#         nlp.add_pipe("ner", last=True)
-#
-#     ner = nlp.get_pipe("ner")
-#     ner.add_label("TAXON")
-#
-#     other_pipes = [pipe for pipe in nlp.pipe_names if pipe != "ner"]
-#
-#     cop_data = COPIOUS_LOADER.create_dataset('./data/copious_published/train')
-#     tsv_data = TSV_LOADER.create_dataset('./data/corpus-species/filtered_tags.tsv')
-#     rdm_data = RANDOM_LOADER.create_dataset("./data/gene_result.csv", 'Org_name', "./data/sentences.txt", 85)
-#
-#     with nlp.disable_pipes(*other_pipes):
-#         # optimizer = nlp.begin_training()
-#         for itn in range(iterations):
-#             rdm_data = RANDOM_LOADER.create_dataset("./data/gene_result.csv", 'Org_name', "./data/sentences.txt", 85)
-#             TRAIN_DATA = cop_data + rdm_data
-#             random.shuffle(TRAIN_DATA)
-#
-#             print("Starting iteration " + str(itn))
-#             losses = {}
-#             i = 0
-#
-#             batches = minibatch(TRAIN_DATA, size=compounding(4.0, 32.0, 1.001))
-#             for batch in batches:
-#                 examples = []
-#                 for text, annotations in batch:
-#                     doc = nlp.make_doc(text)
-#                     example = Example.from_dict(doc, annotations)
-#                     examples.append(example)
-#                 nlp.update(
-#                     examples,
-#                     drop=0.5,
-#                     # sgd=optimizer,
-#                     losses=losses
-#                 )
-#             print(losses)
-#         return nlp
+def train_spacy(iterations):
+    """
+    Defines our spacy loop
+    """
+    # nlp = spacy.blank("en")
+    nlp = spacy.load('en_core_web_sm')
+    if "ner" not in nlp.pipe_names:
+        nlp.add_pipe("ner", last=True)
+
+    ner = nlp.get_pipe("ner")
+    ner.add_label("TAXON")
+
+    other_pipes = [pipe for pipe in nlp.pipe_names if pipe != "ner"]
+
+    cop_data = COPIOUS_LOADER.create_dataset('./data/copious_published/train')
+    tsv_data = TSV_LOADER.create_dataset('./data/corpus-species/filtered_tags.tsv')
+    rdm_data = RANDOM_LOADER.create_dataset("./data/gene_result.csv", 'Org_name', "./data/sentences.txt", 85)
+
+    with nlp.disable_pipes(*other_pipes):
+        # optimizer = nlp.begin_training()
+        for itn in range(iterations):
+            rdm_data = RANDOM_LOADER.create_dataset("./data/gene_result.csv", 'Org_name', "./data/sentences.txt", 85)
+            TRAIN_DATA = cop_data + rdm_data
+            random.shuffle(TRAIN_DATA)
+
+            print("Starting iteration " + str(itn))
+            losses = {}
+            i = 0
+
+            batches = minibatch(TRAIN_DATA, size=compounding(4.0, 32.0, 1.001))
+            for batch in batches:
+                examples = []
+                for text, annotations in batch:
+                    doc = nlp.make_doc(text)
+                    example = Example.from_dict(doc, annotations)
+                    examples.append(example)
+                nlp.update(
+                    examples,
+                    drop=0.5,
+                    # sgd=optimizer,
+                    losses=losses
+                )
+            print(losses)
+        return nlp
 
 def test():
     # nlp = train_spacy(40)
@@ -105,12 +113,14 @@ def test():
     # 483 / 85
 
 
+def demo():
+    nlp = spacy.load("taxon_ner_model")
+    text = "in Aquaman, Arthur controls sharks, more commonly known as Squalus carcharias, with his mind."
+    pred_ents = [ent.text for ent in nlp(text).ents]
+    print(pred_ents)
 
-nlp = spacy.load("taxon_ner_model")
-text = "in Aquaman, Arthur controls sharks, more commonly known as Squalus carcharias, with his mind."
-pred_ents = [ent.text for ent in nlp(text).ents]
-print(pred_ents)
+    text = "in Aquaman, Arthur meets Aiden Meyer, a math student."
+    pred_ents = [ent.text for ent in nlp(text).ents]
+    print(pred_ents)
 
-text = "in Aquaman, Arthur meets Aiden Meyer, a math student."
-pred_ents = [ent.text for ent in nlp(text).ents]
-print(pred_ents)
+demo()

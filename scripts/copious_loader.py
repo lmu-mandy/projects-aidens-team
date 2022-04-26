@@ -19,7 +19,6 @@ import warnings
 from os import listdir
 
 class COPIOUS_LOADER:
-
     def concat_txt_file(path):
         """
         Concatonates a text file into one string.
